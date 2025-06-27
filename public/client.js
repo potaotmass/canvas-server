@@ -1,75 +1,57 @@
-// public/client.js
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Theme Management ---
     const themeToggle = document.getElementById('theme-toggle');
     const docElement = document.documentElement;
-
-    // Set initial toggle state based on the class set by the script in <head>
     themeToggle.checked = docElement.classList.contains('dark');
-
     themeToggle.addEventListener('change', () => {
         const isDark = themeToggle.checked;
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
         docElement.className = isDark ? 'dark' : '';
     });
-
-    // --- Element References & State ---
     const uploadForm = document.getElementById('upload-form');
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const uploadDetails = document.getElementById('upload-details');
-    const fileNameSpan = document.getElementById('file-name');
+    const fileNameDisplay = document.getElementById('file-name-display');
     const titleInput = document.getElementById('title-input');
     const uploadBtn = document.getElementById('upload-btn');
     const uploadStatus = document.getElementById('upload-status');
     const videoGrid = document.getElementById('video-grid');
     let selectedFile = null;
 
-    // --- Drag & Drop Logic (Corrected & Final) ---
     dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault(); // This is essential
-        dropZone.classList.add('drag-over');
-    });
-    ['dragleave', 'dragend', 'drop'].forEach(type => {
-        dropZone.addEventListener(type, () => dropZone.classList.remove('drag-over'));
-    });
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    ['dragleave', 'dragend', 'drop'].forEach(type => dropZone.addEventListener(type, () => dropZone.classList.remove('drag-over')));
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         if (e.dataTransfer.files.length) {
             const file = e.dataTransfer.files[0];
             if (file?.type.startsWith('video/')) {
-                fileInput.files = e.dataTransfer.files; // Critical step
+                fileInput.files = e.dataTransfer.files;
                 handleFileSelect(file);
             }
         }
     });
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) handleFileSelect(e.target.files[0]);
-    });
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
+
     function handleFileSelect(file) {
         selectedFile = file;
-        fileNameSpan.textContent = file.name;
+        fileNameDisplay.textContent = `File: ${file.name}`;
         uploadDetails.style.display = 'block';
+        dropZone.style.display = 'none';
     }
 
-    // --- Upload Logic ---
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!selectedFile || !titleInput.value.trim()) return alert('Please select a file and title.');
+        if (!selectedFile || !titleInput.value.trim()) return alert('Please select a file and provide a title.');
         const formData = new FormData();
         formData.append('videoFile', selectedFile);
         formData.append('title', titleInput.value.trim());
-
-        uploadStatus.textContent = 'Uploading & Processing... This can take a moment.';
+        uploadStatus.textContent = 'Uploading & Processing...';
         uploadBtn.disabled = true;
-
         try {
             const response = await fetch('/api/upload', { method: 'POST', body: formData });
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
-            
-            // Success! Open in new tab and refresh the list
             window.open(`/watch/${result.video.id}`, '_blank');
             uploadFormReset();
             loadVideos();
@@ -79,14 +61,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function uploadFormReset() { /* ... unchanged ... */ }
+    function uploadFormReset() {
+        selectedFile = null;
+        uploadDetails.style.display = 'none';
+        dropZone.style.display = 'block';
+        titleInput.value = '';
+        fileInput.value = '';
+        uploadBtn.disabled = false;
+        setTimeout(() => { uploadStatus.textContent = ''; }, 3000);
+    }
 
-    // --- Video Grid & Actions Logic ---
-    const loadVideos = async () => { /* ... unchanged ... */ };
-    videoGrid.addEventListener('click', async (e) => { /* ... unchanged ... */ });
+    const loadVideos = async () => {
+        try {
+            const response = await fetch('/api/videos');
+            const videos = await response.json();
+            videoGrid.innerHTML = '';
+            if (videos.length === 0) return videoGrid.innerHTML = '<p>Your uploaded videos will appear here.</p>';
+            videos.forEach(video => {
+                const videoCard = document.createElement('div');
+                videoCard.className = 'video-card';
+                const watchLink = `/watch/${video.id}`;
+                videoCard.innerHTML = `
+                    <a href="${watchLink}" target="_blank" title="${video.title}"><div class="thumbnail"><img src="${video.thumbnailPath}" alt="Thumbnail"></div></a>
+                    <div class="video-info">
+                        <a href="${watchLink}" target="_blank" style="text-decoration:none; color:inherit;"><h3 class="video-title">${video.title}</h3></a>
+                        <p class="video-date">Uploaded on ${new Date(video.uploadDate).toLocaleDateString()}</p>
+                    </div>
+                    <div class="card-overlay">
+                        <button class="overlay-btn share-btn" data-link="${watchLink}">Share</button>
+                        <button class="overlay-btn delete-btn" data-id="${video.id}">Delete</button>
+                    </div>`;
+                videoGrid.appendChild(videoCard);
+            });
+        } catch (error) {
+            videoGrid.innerHTML = '<p>Could not load videos.</p>';
+        }
+    };
 
-    // Initial Load
+    videoGrid.addEventListener('click', async (e) => {
+        const target = e.target;
+        if (target.classList.contains('share-btn')) {
+            const link = window.location.origin + target.dataset.link;
+            navigator.clipboard.writeText(link).then(() => {
+                target.textContent = 'Copied!';
+                setTimeout(() => target.textContent = 'Share', 2000);
+            });
+        }
+        if (target.classList.contains('delete-btn')) {
+            if (confirm("Permanently delete this video?")) {
+                try {
+                    const response = await fetch(`/api/videos/${target.dataset.id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error((await response.json()).message);
+                    loadVideos();
+                } catch (err) { alert(`Failed to delete: ${err.message}`); }
+            }
+        }
+    });
+
     loadVideos();
 });
-
-// To be completely safe, copy the full and final client.js from the "Is there 2 client.js?" answer, and just make sure the theme-toggle part at the top matches this version.

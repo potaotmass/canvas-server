@@ -152,7 +152,9 @@ app.post('/api/upload', upload.single('videoFile'), (req, res) => {
             res.status(201).json({ video: newVideo });
         })
         .on('error', (err) => {
-            fs.unlink(inputFilePath, () => {});
+            console.error("FFMPEG Error:", err.message);
+            fs.unlink(inputFilePath, () => {}); // Clean up the partial upload
+            // Send a response so the browser doesn't wait forever
             res.status(500).json({ message: 'Could not process video. Format may not be supported.' });
         })
         .screenshots({ count: 1, timestamps: ['50%'], filename: thumbnailFileName, folder: THUMBNAILS_DIR, size: '320x180' });
