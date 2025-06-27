@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embedit - Host & Share</title>
+    <title>Embedit - Your Private Video Space</title>
     <link rel="stylesheet" href="/style.css">
     <script>
         const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -10,49 +10,35 @@
     </script>
 </head>
 <body class="">
-    <!-- The Login Screen -->
-    <div id="login-view" class="login-view">
-        <div class="login-box">
-            <h1 class="logo">Embedit</h1>
-            <p style="margin: 0 0 2rem 0; color: var(--text-muted);">Enter your username to continue</p>
-            <form id="login-form">
-                <input type="text" id="username-input" placeholder="Your Username" required>
-                <button type="submit" class="login-btn">Login & View My Videos</button>
+    <!-- The Login Screen is gone, we go straight to the app -->
+    <header class="header">
+        <a href="/" class="logo">Embedit</a>
+        <label class="theme-switch">
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider"></span>
+        </label>
+    </header>
+    <main class="container">
+        <section class="upload-section">
+            <form id="upload-form">
+                <div id="drop-zone">
+                    <h2>Drag & Drop Your Video Here</h2>
+                    <p>or click to select a file</p>
+                </div>
+                <input type="file" id="file-input" accept="video/*">
+                <div id="upload-details" style="display: none;">
+                    <p id="file-name-display"></p>
+                    <input type="text" id="title-input" placeholder="Give your video a title..." required>
+                    <button type="submit" id="upload-btn" class="upload-btn">Upload Video</button>
+                </div>
+                <p id="upload-status"></p>
             </form>
-        </div>
-    </div>
-    <!-- The Main App -->
-    <div id="app-view" style="display: none;">
-        <header class="header">
-            <a href="/" class="logo">Embedit</a>
-            <div class="user-info">
-                <span id="current-user"></span>
-                <button id="logout-btn">Logout</button>
-                <label class="theme-switch"><input type="checkbox" id="theme-toggle"><span class="slider"></span></label>
-            </div>
-        </header>
-        <main class="container">
-            <section class="upload-section">
-                <form id="upload-form">
-                    <div id="drop-zone">
-                        <h2>Drag & Drop Your Video Here</h2>
-                        <p>or click to select a file</p>
-                    </div>
-                    <input type="file" id="file-input" accept="video/*">
-                    <div id="upload-details" style="display: none;">
-                        <p id="file-name-display"></p>
-                        <input type="text" id="title-input" placeholder="Give your video a title..." required>
-                        <button type="submit" id="upload-btn" class="upload-btn">Upload Video</button>
-                    </div>
-                    <p id="upload-status"></p>
-                </form>
-            </section>
-            <section>
-                <h2 id="my-videos-header">My Videos</h2>
-                <div id="video-grid" class="video-grid"></div>
-            </section>
-        </main>
-    </div>
+        </section>
+        <section>
+            <h2>My Videos</h2>
+            <div id="video-grid" class="video-grid"></div>
+        </section>
+    </main>
     <script src="/client.js"></script>
 </body>
 </html>

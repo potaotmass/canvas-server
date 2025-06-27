@@ -1,4 +1,4 @@
-/* public/style.css - THE FINAL COMPLETE VERSION */
+/* public/style.css - FINAL VERSION */
 :root {
     --bg-color: #f0fdf4; --surface-color: rgba(255, 255, 255, 0.7); --text-color: #1f2937;
     --text-muted: #4b5563; --accent-color: #22c55e; --accent-hover: #16a34a;
@@ -32,7 +32,7 @@ input:checked + .slider:before { transform: translateX(26px); content: "🌙"; }
 .upload-btn:hover:not(:disabled) { background-color: var(--accent-hover); }
 .upload-btn:disabled { background-color: var(--text-muted); cursor: not-allowed; }
 .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
-.video-card { position: relative; background: var(--surface-color); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: var(--shadow); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+.video-card { position: relative; cursor: pointer; background: var(--surface-color); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: var(--shadow); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
 .video-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.15); }
 .thumbnail img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #333; }
 .video-info { padding: 1rem; }
@@ -48,10 +48,3 @@ input:checked + .slider:before { transform: translateX(26px); content: "🌙"; }
 .watch-container h2 { font-size: 2rem; color: var(--text-color); }
 .watch-container p { color: var(--text-muted); }
 .watch-page-actions { margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; }
-.login-view { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-.login-box { background: var(--surface-color); padding: 3rem; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); text-align: center; }
-#username-input { width: 100%; font-size: 1.2rem; padding: 0.75rem; text-align: center; border-radius: 8px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); margin-bottom: 1.5rem; }
-.login-btn { background-color: var(--accent-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
-.user-info { display: flex; align-items: center; gap: 1rem; }
-#logout-btn { background: none; border: 1px solid var(--text-muted); color: var(--text-muted); font-weight: 500; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-#logout-btn:hover { background-color: var(--border-color); color: var(--text-color); }
