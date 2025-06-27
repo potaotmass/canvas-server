@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoGrid = document.getElementById('video-grid');
     let selectedFile = null;
 
-    // --- Drag & Drop Logic ---
+    // --- Drag & Drop ---
     dropZone.addEventListener('click', () => fileInput.click());
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
     ['dragleave', 'dragend', 'drop'].forEach(type => dropZone.addEventListener(type, () => dropZone.classList.remove('drag-over')));
@@ -55,25 +55,20 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { uploadStatus.textContent = ''; }, 3000);
     }
 
-    // --- Upload Form Submission ---
+    // --- Upload ---
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!selectedFile || !titleInput.value.trim()) return alert('Please select a file and provide a title.');
         const formData = new FormData();
         formData.append('videoFile', selectedFile);
         formData.append('title', titleInput.value.trim());
-
         uploadStatus.textContent = 'Uploading & Processing...';
         uploadBtn.disabled = true;
-
         try {
             const response = await fetch('/api/upload', { method: 'POST', body: formData });
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
-            
-            const newTab = window.open(`/watch/${result.video.id}`, '_blank');
-            // We cannot reliably close the old tab, but we can open the new one.
-            
+            window.open(`/watch/${result.video.id}`, '_blank');
             uploadFormReset();
             loadVideos();
         } catch (error) {
@@ -88,17 +83,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/videos');
             const videos = await response.json();
             videoGrid.innerHTML = '';
-            if (videos.length === 0) return videoGrid.innerHTML = '<p>Your uploaded videos appear here.</p>';
+            if (videos.length === 0) return videoGrid.innerHTML = '<p>Your uploaded videos will appear here.</p>';
             
             videos.forEach(video => {
                 const videoCard = document.createElement('div');
                 videoCard.className = 'video-card';
                 const watchLink = `/watch/${video.id}`;
                 videoCard.innerHTML = `
-                    <a href="${watchLink}" target="_blank" title="Watch ${video.title}"><div class="thumbnail"><img src="${video.thumbnailPath}" alt="Thumbnail"></div></a>
+                    <a href="${watchLink}" target="_blank" title="${video.title}"><div class="thumbnail"><img src="${video.thumbnailPath}" alt="Thumbnail"></div></a>
                     <div class="video-info">
                         <a href="${watchLink}" target="_blank" style="text-decoration:none; color:inherit;"><h3 class="video-title">${video.title}</h3></a>
-                        <p class="video-date">Uploaded: ${new Date(video.uploadDate).toLocaleDateString()}</p>
+                        <p class="video-date">Uploaded on ${new Date(video.uploadDate).toLocaleDateString()}</p>
                     </div>
                     <div class="card-overlay">
                         <button class="overlay-btn share-btn" data-link="${watchLink}">Share</button>
@@ -111,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // --- Event listener for dynamic buttons ---
     videoGrid.addEventListener('click', async (e) => {
         const target = e.target;
         if (target.classList.contains('share-btn')) {
@@ -132,6 +126,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Initial Load ---
     loadVideos();
 });
