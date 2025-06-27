@@ -1,47 +1,88 @@
-/* Add these new styles to public/style.css */
-
-.video-card {
-    position: relative; /* This is required for the overlay to work */
+/* public/style.css */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
 }
-
-.card-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    opacity: 0; /* Hidden by default */
-    transition: opacity 0.2s ease-in-out;
-    border-radius: 16px;
-    pointer-events: none; /* Can't be clicked when hidden */
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
-
-.video-card:hover .card-overlay {
-    opacity: 1; /* Show on hover */
-    pointer-events: all; /* Make buttons clickable */
+header {
+    background-color: #1e1e1e;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #333;
 }
-
-.overlay-btn {
-    background: rgba(255, 255, 255, 0.9);
-    color: #111827;
-    border: none;
-    padding: 0.6rem 1.2rem;
+header h1 {
+    color: #4CAF50;
+    margin: 0;
+}
+form {
+    background: #1e1e1e;
+    padding: 24px;
     border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s;
+    margin: 40px 0;
+    border: 1px solid #333;
 }
-.overlay-btn:hover {
-    transform: scale(1.05);
+input[type="text"], input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    background-color: #333;
+    border: 1px solid #555;
+    color: #e0e0e0;
+    border-radius: 4px;
 }
-
-.overlay-btn.delete {
-    background-color: #ef4444; /* Red for delete */
+button {
+    background: #4CAF50;
     color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
 }
+button:hover { background-color: #45a049; }
+.share-btn {
+    background-color: #007bff;
+    margin-left: 10px;
+}
+.share-btn:hover { background-color: #0069d9; }
+.video-list {
+    margin-top: 20px;
+}
+.video-item {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.video-item-info a {
+    color: #61dafb;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 500;
+}
+.video-item-info a:hover { text-decoration: underline; }
+.video-item-info p {
+    color: #aaa;
+    margin: 8px 0 0;
+}
+.watch-container { text-align: center; }
+.watch-container video {
+    max-width: 100%;
+    border-radius: 8px;
+    background: #000;
+}
+.watch-container h2 { margin-top: 20px; font-size: 28px; }
+.watch-container p { color: #aaa; }
