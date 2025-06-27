@@ -1,18 +1,16 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>embedit - Host & Share Your Videos</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>embedit - Host & Share</title>
     <link rel="stylesheet" href="/style.css">
-    <!-- ** THE FIX **: Instant theme loader to prevent flash -->
+    <!-- Instant theme loader to prevent flash -->
     <script>
         const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.className = theme;
     </script>
 </head>
-<body class=""> <!-- Class is now set instantly by the head script -->
+<body class="">
     <header class="header">
         <a href="/" class="logo">embedit</a>
         <label class="theme-switch">
@@ -22,6 +20,7 @@
     </header>
 
     <main class="container">
+        <!-- THE FIX: A cleaner uploader layout -->
         <section class="upload-section">
             <form id="upload-form">
                 <div id="drop-zone">
@@ -29,22 +28,18 @@
                     <p>or click to select a file</p>
                 </div>
                 <input type="file" id="file-input" accept="video/*">
-
+                
                 <div id="upload-details" style="display: none;">
-                    <p><strong>File:</strong> <span id="file-name"></span></p>
+                    <p id="file-name-display"></p>
                     <input type="text" id="title-input" placeholder="Give your video a title..." required>
-                    <button type="submit" id="upload-btn" class="upload-btn">Upload & Get Link</button>
+                    <button type="submit" class="upload-btn" id="upload-btn">Upload & Open Link</button>
                 </div>
                 <p id="upload-status"></p>
             </form>
         </section>
 
-        <section>
-            <h2>My Videos</h2>
-            <div id="video-grid" class="video-grid"></div>
-        </section>
+        <section><h2>My Videos</h2><div id="video-grid" class="video-grid"></div></section>
     </main>
-    
     <script src="/client.js"></script>
 </body>
 </html>
