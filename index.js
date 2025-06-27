@@ -131,20 +131,46 @@ app.get('/watch/:id', (req, res) => {
     res.send(html);
 });
 
-// UPLOAD Route (Unchanged, already non-blocking and robust)
-app.post('/api/upload', upload.single('videoFile'), (req, res) => {
-    // This entire function from the last step is perfect
-    if (!req.file) return res.status(400).json({ message: 'No file selected.' });
+// UPLOAD a new video to Supabase
+app.post('/api/upload', upload.single('videoFile'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'No file was provided.' });
+    
     const { deviceID, title } = req.body;
-    if (!deviceID) return res.status(400).json({ message: 'Device ID required.' });
-    const thumbnailFileName = `thumb-${path.parse(req.file.filename).name}.png`;
-    const newVideo = {id: videos.length ? Math.max(...videos.map(v => v.id)) + 1 : 1, deviceID, title: title || 'Untitled', fileName: req.file.filename, path: `/uploads/${req.file.filename}`, thumbnailPath: `/placeholder.png`, uploadDate: new Date(), processing: true };
-    videos.push(newVideo);
-    saveDB();
-    res.status(201).json({ video: newVideo });
+    if (!deviceID) return res.status(400).json({ message: 'Device ID is required.' });
+    
     try {
-        ffmpeg(req.file.path).on('end', () => { const i = videos.findIndex(v=>v.id===newVideo.id); if (i!==-1) { videos[i].thumbnailPath=`/thumbnails/${thumbnailFileName}`; videos[i].processing=false; saveDB(); }}).on('error', (err) => { const i = videos.findIndex(v=>v.id===newVideo.id); if (i!==-1) { videos[i].processing=false; videos[i].thumbnailPath=`/thumbnail-error.png`; saveDB(); }}).screenshots({ count: 1, timestamps: ['50%'], filename: thumbnailFileName, folder: THUMBNAILS_DIR, size: '320x180' });
-    } catch (error) { console.error("FFMPEG error:", error); }
+        // 1. Upload the main video file to the 'videos' bucket
+        const videoFileName = `${deviceID}/${Date.now()}-${req.file.originalname.replace(/\s/g, '-')}`;
+        const { data: videoUploadData, error: videoUploadError } = await supabase
+            .storage
+            .from('videos')
+            .upload(videoFileName, req.file.buffer, { contentType: req.file.mimetype });
+
+        if (videoUploadError) throw videoUploadError;
+
+        // 2. Get the public URL of the uploaded video
+        const { data: { publicUrl: videoPublicUrl } } = supabase.storage.from('videos').getPublicUrl(videoFileName);
+
+        // 3. Insert metadata into the database
+        const { data: dbData, error: dbError } = await supabase
+            .from('videos')
+            .insert([{
+                device_id: deviceID,
+                title: title || 'Untitled',
+                file_path: videoPublicUrl,
+                thumbnail_path: '/placeholder.png' // Use a placeholder from your /public folder for now
+            }])
+            .select()
+            .single();
+
+        if (dbError) throw dbError;
+
+        res.status(201).json({ video: dbData });
+
+    } catch (error) {
+        console.error('Upload process failed:', error);
+        res.status(500).json({ message: error.message });
+    }
 });
 
 
