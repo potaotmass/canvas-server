@@ -1,24 +1,19 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verdant - My Videos</title>
+    <title>embedit - Host & Share</title>
     <link rel="stylesheet" href="style.css">
-    <!-- THEME SYNC SCRIPT: Prevents the flash of incorrect theme on reload -->
+    <!-- Instant theme loader to prevent flash -->
     <script>
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        // If theme is 'dark' OR (no theme is saved AND user prefers dark), add dark class
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-            document.documentElement.classList.add('dark');
-        }
+        const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.className = theme;
     </script>
 </head>
-<body class="dark"> <!-- Default to dark, script will remove if needed -->
+<body class=""> <!-- Class is set by script -->
     <header class="header">
-        <a href="/" class="logo">Verdant</a>
+        <a href="/" class="logo">embedit</a>
         <label class="theme-switch">
             <input type="checkbox" id="theme-toggle">
             <span class="slider"></span>
@@ -29,15 +24,15 @@
         <section class="upload-section">
             <form id="upload-form">
                 <div id="drop-zone">
-                    <h2>Drag & Drop a Video to Upload</h2>
-                    <p>or click here to select a file</p>
+                    <h2>Drag & Drop Your Video Here</h2>
+                    <p>or click to select a file</p>
                 </div>
                 <input type="file" id="file-input" accept="video/*">
 
                 <div id="upload-details" style="display: none;">
-                    <p><strong>File selected:</strong> <span id="file-name"></span></p>
-                    <input type="text" id="title-input" placeholder="Enter video title" required>
-                    <button type="submit" id="upload-btn" class="upload-btn">Upload</button>
+                    <p><strong>File:</strong> <span id="file-name"></span></p>
+                    <input type="text" id="title-input" placeholder="Give your video a title..." required>
+                    <button type="submit" id="upload-btn" class="upload-btn">Upload & Get Link</button>
                 </div>
                 <p id="upload-status"></p>
             </form>
@@ -45,9 +40,7 @@
 
         <section>
             <h2>My Videos</h2>
-            <div id="video-grid" class="video-grid">
-                <!-- Video cards will be dynamically inserted here -->
-            </div>
+            <div id="video-grid" class="video-grid"></div>
         </section>
     </main>
     

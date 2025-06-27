@@ -1,6 +1,5 @@
 // index.js
 
-// 1. SETUP
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
@@ -10,121 +9,118 @@ const ffmpeg = require('fluent-ffmpeg');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- Define our directories ---
+// --- Define Directories ---
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const THUMBNAILS_DIR = path.join(__dirname, 'thumbnails');
-
-// Ensure all needed directories exist
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-if (!fs.existsSync(THUMBNAILS_DIR)) fs.mkdirSync(THUMBNAILS_DIR, { recursive: true });
-
-// --- Mock Database (Persisting video data) ---
-// To make sure our video list survives restarts on Render, we'll use a simple JSON file.
 const DB_PATH = path.join(__dirname, 'db.json');
-let videos = [];
-const loadDB = () => {
-    if (fs.existsSync(DB_PATH)) {
-        videos = JSON.parse(fs.readFileSync(DB_PATH));
-    }
-};
-const saveDB = () => {
-    fs.writeFileSync(DB_PATH, JSON.stringify(videos, null, 2));
-};
-loadDB(); // Load the database on startup
 
+// --- Setup ---
+[UPLOADS_DIR, THUMBNAILS_DIR].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
+let videos = fs.existsSync(DB_PATH) ? JSON.parse(fs.readFileSync(DB_PATH)) : [];
+const saveDB = () => fs.writeFileSync(DB_PATH, JSON.stringify(videos, null, 2));
 
-// 2. MIDDLEWARE
+// --- Middleware ---
 app.use(express.static('public'));
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use('/thumbnails', express.static(THUMBNAILS_DIR));
 
-const storage = multer.diskStorage({ /* ... same as before ... */ });
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '-')),
+});
 const upload = multer({ storage, limits: { fileSize: 200 * 1024 * 1024 } });
 
-
-// 3. API ROUTES
+// --- API ROUTES ---
 
 // GET all videos
 app.get('/api/videos', (req, res) => res.json(videos.slice().reverse()));
 
-// POST to upload a new video
+// POST a new video upload with robust error handling
 app.post('/api/upload', upload.single('videoFile'), (req, res) => {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
 
     const inputFilePath = req.file.path;
     const thumbnailFileName = `thumb-${path.parse(req.file.filename).name}.png`;
     const thumbnailFilePath = path.join(THUMBNAILS_DIR, thumbnailFileName);
-    
-    // ** REAL THUMBNAIL GENERATION **
+
     ffmpeg(inputFilePath)
         .on('end', () => {
             console.log('Thumbnail generated for', req.file.filename);
             const newVideo = {
-                // Find the highest existing ID and add 1
                 id: videos.length > 0 ? Math.max(...videos.map(v => v.id)) + 1 : 1,
                 title: req.body.title || "Untitled Video",
-                fileName: req.file.filename, // Store original file name to delete it later
+                fileName: req.file.filename,
                 path: `/uploads/${req.file.filename}`,
                 thumbnailPath: `/thumbnails/${thumbnailFileName}`,
                 uploadDate: new Date().toISOString()
             };
             videos.push(newVideo);
-            saveDB(); // Save to our JSON database
+            saveDB();
+            // ALWAYS send a success response
             res.status(201).json({ message: 'Video uploaded!', video: newVideo });
         })
         .on('error', (err) => {
-            console.error('Error generating thumbnail:', err);
-            // Even if thumbnail fails, we should still allow the upload.
-            // But first, let's delete the uploaded video file to prevent orphans.
-            fs.unlink(inputFilePath, () => {});
-            res.status(500).json({ message: "Could not process video thumbnail." });
+            console.error('Error during thumbnail generation:', err.message);
+            // Cleanup the failed upload
+            fs.unlink(inputFilePath, (unlinkErr) => {
+                if (unlinkErr) console.error("Failed to delete orphaned video file:", unlinkErr);
+            });
+            // ALWAYS send an error response
+            res.status(500).json({ message: "Could not process video. It may be a corrupted or unsupported format." });
         })
-        .screenshots({
-            count: 1,
-            timestamps: ['50%'], // A single screenshot from the middle of the video
-            filename: thumbnailFileName,
-            folder: THUMBNAILS_DIR,
-            size: '320x180'
-        });
+        .screenshots({ count: 1, timestamps: ['50%'], filename: thumbnailFileName, folder: THUMBNAILS_DIR, size: '320x180' });
 });
 
 // GET the watch page
-app.get('/watch/:id', (req, res) => { /* ... same as before, no changes needed ... */ });
-
-// *** NEW DELETE ROUTE ***
-app.delete('/api/videos/:id', (req, res) => {
+app.get('/watch/:id', (req, res) => {
     const videoId = parseInt(req.params.id, 10);
-    const videoIndex = videos.findIndex(v => v.id === videoId);
+    const video = videos.find(v => v.id === videoId);
 
-    if (videoIndex === -1) {
-        return res.status(404).json({ message: "Video not found" });
-    }
+    if (!video) return res.status(404).send('<h1>Error 404: Video Not Found</h1><a href="/">Go Back Home</a>');
 
-    // Get the video object before deleting its metadata
-    const videoToDelete = videos[videoIndex];
+    const pageUrl = `${req.protocol}://${req.get('host')}/watch/${video.id}`;
+    const absoluteVideoUrl = `${req.protocol}://${req.get('host')}${video.path}`;
+    const absoluteThumbnailUrl = `${req.protocol}://${req.get('host')}${video.thumbnailPath}`;
 
-    try {
-        // Delete the video file
-        const videoPath = path.join(UPLOADS_DIR, videoToDelete.fileName);
-        if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
-
-        // Delete the thumbnail file
-        const thumbFileName = path.basename(videoToDelete.thumbnailPath);
-        const thumbPath = path.join(THUMBNAILS_DIR, thumbFileName);
-        if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
-
-        // Remove the video from our database array and save
-        videos.splice(videoIndex, 1);
-        saveDB();
-
-        console.log(`Deleted video ${videoId} and its files.`);
-        res.status(200).json({ message: "Video deleted successfully" });
-    } catch (err) {
-        console.error("Error deleting files:", err);
-        res.status(500).json({ message: "Error deleting video files." });
-    }
+    const html = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>embedit | ${video.title}</title>
+            
+            <meta property="og:type" content="video.other">
+            <meta property="og:title" content="${video.title}">
+            <meta property="og:url" content="${pageUrl}">
+            <meta property="og:image" content="${absoluteThumbnailUrl}">
+            <meta property="og:video" content="${absoluteVideoUrl}">
+            
+            <link rel="stylesheet" href="/style.css">
+            <script>
+                const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.className = theme;
+            </script>
+        </head>
+        <body class=""> <!-- Class is set by script -->
+            <header class="header">
+                <a href="/" class="logo">embedit</a>
+                <a href="/" style="color: var(--text-color); text-decoration: none;">← Back to All Videos</a>
+            </header>
+            <main class="container">
+                <div class="watch-container">
+                    <h2>${video.title}</h2>
+                    <p>Uploaded on ${new Date(video.uploadDate).toLocaleDateString()}</p>
+                    <video controls autoplay src="${video.path}"></video>
+                </div>
+            </main>
+        </body>
+        </html>
+    `;
+    res.send(html);
 });
 
-
-// 4. START SERVER
+// --- Start Server ---
 app.listen(PORT, () => console.log(`Server is running at http://localhost:${PORT}`));
