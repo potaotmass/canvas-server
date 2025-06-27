@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Device ID Management ---
-    const deviceID = (() => { let id = localStorage.getItem('embedit-device-id'); if (!id) { id = crypto.randomUUID(); localStorage.setItem('embedit-device-id', id); } return id; })();
+    const deviceID = (() => { let id = localStorage.getItem('Embedit-device-id'); if (!id) { id = crypto.randomUUID(); localStorage.setItem('embedit-device-id', id); } return id; })();
     
     // --- Theme Management ---
     const themeToggle = document.getElementById('theme-toggle');
