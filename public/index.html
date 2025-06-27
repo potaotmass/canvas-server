@@ -4,12 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canvas - My Videos</title>
+    <title>Verdant - My Videos</title>
     <link rel="stylesheet" href="style.css">
+    <!-- THEME SYNC SCRIPT: Prevents the flash of incorrect theme on reload -->
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        // If theme is 'dark' OR (no theme is saved AND user prefers dark), add dark class
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
-<body>
+<body class="dark"> <!-- Default to dark, script will remove if needed -->
     <header class="header">
-        <a href="/" class="logo">Canvas</a>
+        <a href="/" class="logo">Verdant</a>
         <label class="theme-switch">
             <input type="checkbox" id="theme-toggle">
             <span class="slider"></span>
@@ -18,19 +27,20 @@
 
     <main class="container">
         <section class="upload-section">
-            <div id="drop-zone">
-                <h2>Drag & Drop a Video to Upload</h2>
-                <p>or click here to select a file</p>
+            <form id="upload-form">
+                <div id="drop-zone">
+                    <h2>Drag & Drop a Video to Upload</h2>
+                    <p>or click here to select a file</p>
+                </div>
                 <input type="file" id="file-input" accept="video/*">
-            </div>
 
-            <div id="upload-details" style="display: none;">
-                <p><strong>File selected:</strong> <span id="file-name"></span></p>
-                <input type="text" id="title-input" placeholder="Enter video title" required>
-                <button id="upload-btn" class="upload-btn">Upload</button>
-            </div>
-            
-            <p id="upload-status"></p>
+                <div id="upload-details" style="display: none;">
+                    <p><strong>File selected:</strong> <span id="file-name"></span></p>
+                    <input type="text" id="title-input" placeholder="Enter video title" required>
+                    <button type="submit" id="upload-btn" class="upload-btn">Upload</button>
+                </div>
+                <p id="upload-status"></p>
+            </form>
         </section>
 
         <section>

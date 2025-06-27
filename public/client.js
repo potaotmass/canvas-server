@@ -1,25 +1,16 @@
-// public/client.js
 document.addEventListener('DOMContentLoaded', () => {
     // --- Theme Management ---
     const themeToggle = document.getElementById('theme-toggle');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('theme');
-
-    const setTheme = (isDark) => {
-        document.body.classList.toggle('dark', isDark);
-        themeToggle.checked = isDark;
+    const docElement = document.documentElement;
+    themeToggle.checked = docElement.classList.contains('dark');
+    themeToggle.addEventListener('change', () => {
+        const isDark = themeToggle.checked;
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    };
-
-    if (savedTheme) {
-        setTheme(savedTheme === 'dark');
-    } else {
-        setTheme(prefersDark);
-    }
-    themeToggle.addEventListener('change', () => setTheme(themeToggle.checked));
-
+        docElement.classList.toggle('dark', isDark);
+    });
 
     // --- Element References ---
+    const uploadForm = document.getElementById('upload-form');
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const uploadDetails = document.getElementById('upload-details');
@@ -31,73 +22,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedFile = null;
 
-    // --- Drag and Drop Logic ---
+    // --- Drag & Drop Logic ---
     dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('drag-over');
-    });
-    ['dragleave', 'dragend'].forEach(type => {
-        dropZone.addEventListener(type, () => dropZone.classList.remove('drag-over'));
-    });
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    ['dragleave', 'dragend', 'drop'].forEach(type => dropZone.addEventListener(type, () => dropZone.classList.remove('drag-over')));
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('video/')) {
-            handleFileSelect(file);
+        if (e.dataTransfer.files.length) {
+            const file = e.dataTransfer.files[0];
+            if (file?.type.startsWith('video/')) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect(file);
+            }
         }
     });
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) {
-            handleFileSelect(e.target.files[0]);
-        }
-    });
-
+    fileInput.addEventListener('change', (e) => e.target.files.length && handleFileSelect(e.target.files[0]));
     function handleFileSelect(file) {
         selectedFile = file;
         fileNameSpan.textContent = file.name;
         uploadDetails.style.display = 'block';
     }
 
-
     // --- Upload Logic ---
-    uploadBtn.addEventListener('click', async () => {
-        if (!selectedFile || !titleInput.value.trim()) {
-            alert('Please select a file and enter a title.');
-            return;
-        }
-
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!selectedFile || !titleInput.value.trim()) return alert('Please select a file and title.');
         const formData = new FormData();
-        formData.append('title', titleInput.value.trim());
         formData.append('videoFile', selectedFile);
+        formData.append('title', titleInput.value.trim());
 
-        uploadStatus.innerHTML = `Uploading <strong>${selectedFile.name}</strong>... <div class="loader"></div>`;
+        uploadStatus.textContent = 'Uploading & Processing...';
         uploadBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch('/api/upload', { method: 'POST', body: formData });
             const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
-
-            uploadStatus.textContent = 'Upload successful!';
-            
-            // Open the new video in a new tab
+            if (!response.ok) throw new Error(result.message || 'Upload failed');
             window.open(`/watch/${result.video.id}`, '_blank');
-            
-            // Reset the form and reload the video list
             uploadFormReset();
             loadVideos();
-
         } catch (error) {
-            uploadStatus.textContent = `Upload failed: ${error.message}`;
+            uploadStatus.textContent = `Error: ${error.message}`;
             uploadBtn.disabled = false;
         }
     });
-
+    
     function uploadFormReset() {
         selectedFile = null;
         uploadDetails.style.display = 'none';
@@ -107,45 +76,60 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { uploadStatus.textContent = ''; }, 3000);
     }
 
-
-    // --- Load Videos on Page Load ---
+    // --- Video Grid & Actions ---
     const loadVideos = async () => {
         try {
             const response = await fetch('/api/videos');
             const videos = await response.json();
             videoGrid.innerHTML = '';
-
-            if (videos.length === 0) {
-                videoGrid.innerHTML = '<p>You haven\'t uploaded any videos yet. Drag one above to get started!</p>';
-                return;
-            }
-
+            if (videos.length === 0) return videoGrid.innerHTML = '<p>Your uploaded videos appear here. Drag one above to start!</p>';
             videos.forEach(video => {
-                const videoCard = document.createElement('a');
+                const videoCard = document.createElement('div');
                 videoCard.className = 'video-card';
-                videoCard.href = `/watch/${video.id}`;
-                videoCard.target = '_blank'; // ** THIS OPENS THE LINK IN A NEW TAB **
-
-                const date = new Date(video.uploadDate).toLocaleDateString();
-
+                const watchLink = `/watch/${video.id}`;
                 videoCard.innerHTML = `
-                    <div class="thumbnail">
-                        <!-- For now, we use a placeholder. Real thumbnail path would go here. -->
-                        <img src="/placeholder-thumbnail.png" alt="thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
+                    <a href="${watchLink}" target="_blank" title="Watch ${video.title}">
+                        <div class="thumbnail"><img src="${video.thumbnailPath}" alt="Thumbnail"></div>
+                    </a>
                     <div class="video-info">
-                        <h3 class="video-title">${video.title}</h3>
-                        <p class="video-date">Uploaded: ${date}</p>
+                        <a href="${watchLink}" target="_blank" style="text-decoration:none; color:inherit;">
+                            <h3 class="video-title">${video.title}</h3>
+                        </a>
+                        <p class="video-date">Uploaded: ${new Date(video.uploadDate).toLocaleDateString()}</p>
                     </div>
-                `;
+                    <div class="card-overlay">
+                        <button class="overlay-btn share-btn" data-link="${watchLink}">Share</button>
+                        <button class="overlay-btn delete-btn" data-id="${video.id}">Delete</button>
+                    </div>`;
                 videoGrid.appendChild(videoCard);
             });
         } catch (error) {
             videoGrid.innerHTML = '<p>Could not load videos.</p>';
-            console.error('Failed to load videos:', error);
         }
     };
+    
+    videoGrid.addEventListener('click', async (e) => {
+        const target = e.target;
+        if (target.classList.contains('share-btn')) {
+            const link = window.location.origin + target.dataset.link;
+            navigator.clipboard.writeText(link).then(() => {
+                target.textContent = 'Copied!';
+                setTimeout(() => target.textContent = 'Share', 2000);
+            });
+        }
+        if (target.classList.contains('delete-btn')) {
+            if (confirm("Are you sure? This action cannot be undone.")) {
+                try {
+                    const response = await fetch(`/api/videos/${target.dataset.id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error((await response.json()).message);
+                    loadVideos();
+                } catch (err) {
+                    alert(`Failed to delete: ${err.message}`);
+                }
+            }
+        }
+    });
 
-    // Initial call
+    // Initial Load
     loadVideos();
 });
