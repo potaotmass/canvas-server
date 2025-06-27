@@ -1,42 +1,29 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canvas Server</title>
-    <style>
-        body { font-family: sans-serif; background: #222; color: #eee; padding: 20px; }
-        #app { max-width: 800px; margin: auto; }
-        h1, h2 { color: #4CAF50; }
-        form { background: #333; padding: 20px; border-radius: 8px; margin-bottom: 40px; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; }
-        button { background: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; }
-        .video-list video { width: 100%; border-radius: 8px; margin-top: 10px; }
-        .video-item { background: #333; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-    </style>
+    <title>Canvas Server - Home</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header>
+        <h1>Canvas Video Platform</h1>
+    </header>
 
-    <div id="app">
-        <h1>Canvas - Real Video Hosting</h1>
-
+    <div class="container">
         <form id="uploadForm">
             <h2>Upload a New Video</h2>
-            <label for="titleInput">Video Title:</label>
-            <input type="text" id="titleInput" name="title" required>
-            <br><br>
-            <label for="fileInput">Video File:</label>
+            <input type="text" id="titleInput" name="title" placeholder="Video Title" required>
             <input type="file" id="fileInput" name="videoFile" accept="video/*" required>
-            <br><br>
-            <button type="submit">Upload Video</button>
+            <button type="submit">Upload & Go to Video</button>
             <p id="uploadStatus"></p>
         </form>
 
-        <div id="videoContainer">
-            <h2>Hosted Videos</h2>
-            <div id="videoList" class="video-list">
-                <!-- Videos will be loaded here by JavaScript -->
-            </div>
+        <h2>Recent Videos</h2>
+        <div id="videoList">
+            <!-- Video list will be loaded here -->
         </div>
     </div>
 
