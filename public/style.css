@@ -1,5 +1,4 @@
-/* public/style.css - FINAL */
-
+/* public/style.css - THE FINAL VERSION */
 :root {
     --bg-color: #f0fdf4;
     --surface-color: rgba(255, 255, 255, 0.7);
@@ -12,52 +11,49 @@
     --backdrop-blur: 12px;
 }
 html.dark {
-    --bg-color: #062615; /* A very deep, dark green */
-    --surface-color: rgba(6, 78, 59, 0.6); /* Dark emerald for surfaces */
+    --bg-color: #062615;
+    --surface-color: rgba(6, 78, 59, 0.6);
     --text-color: #f9fafb;
     --text-muted: #9ca3af;
     --border-color: rgba(255, 255, 255, 0.1);
 }
-/* Base styles ... */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.3s; line-height: 1.6; }
 .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
 .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent-color); text-decoration: none; }
-/* Header and Navigation ... */
 .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: var(--surface-color); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 1000; }
-.back-link { color: var(--text-color); text-decoration: none; font-weight: 500; }
-/* Theme Toggle ... */
+.back-link { color: var(--text-color); text-decoration: none; font-weight: 500; padding: 8px 16px; border-radius: 8px; transition: background-color 0.2s; }
+.back-link:hover { background-color: var(--border-color); }
 .theme-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
 .theme-switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 24px; transition: 0.4s; }
 .slider:before { position: absolute; content: "☀️"; font-size: 12px; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; transition: 0.4s; display: flex; align-items: center; justify-content: center; color: #111; }
 input:checked + .slider { background-color: #1f2937; }
 input:checked + .slider:before { transform: translateX(26px); content: "🌙"; }
-/* Uploader Drop Zone */
 .upload-section { background: var(--surface-color); padding: 2rem; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); text-align: center; margin-bottom: 3rem; }
-.drop-zone { 
-    border: 2px dashed var(--text-muted);
-    border-radius: 12px;
-    padding: 3rem 2rem;
-    cursor: pointer; /* ** THE UI FIX: Correct cursor on hover ** */
-    transition: all 0.2s;
-}
+.drop-zone { border: 2px dashed var(--text-muted); border-radius: 12px; padding: 3rem 2rem; cursor: pointer; transition: all 0.2s; }
 .drop-zone.drag-over { border-color: var(--accent-color); background-color: rgba(34, 197, 94, 0.1); transform: scale(1.02); }
-.watch-page-actions {
-    margin-top: 2rem;
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
-.watch-container {
-    text-align: center;
-}
-.watch-container video {
-    max-width: 1100px;
-    width: 100%;
-    margin: 1rem auto 0;
-    display: block;
-    border-radius: 16px;
-    background: #000;
-}
-/* ... Rest of the CSS styles (inputs, buttons, video grid, etc.) can stay exactly the same as the last version ... */
+#file-input { display: none; }
+#upload-details { margin-top: 1.5rem; }
+#file-name-display { font-weight: 500; margin-bottom: 1rem; color: var(--text-muted); }
+#title-input { width: 100%; max-width: 400px; padding: 0.75rem; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; font-size: 1rem; }
+.upload-btn { background-color: var(--accent-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 1rem; transition: background-color 0.2s; }
+.upload-btn:hover:not(:disabled) { background-color: var(--accent-hover); }
+.upload-btn:disabled { background-color: var(--text-muted); cursor: not-allowed; }
+.video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+.video-card { position: relative; background: var(--surface-color); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: var(--shadow); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+.video-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.15); }
+.thumbnail img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #333; }
+.video-info { padding: 1rem; }
+.video-title { font-weight: 600; font-size: 1.1rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.video-date { font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem; }
+.card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; gap: 1rem; opacity: 0; transition: opacity 0.2s ease-in-out; border-radius: 16px; pointer-events: none; }
+.video-card:hover .card-overlay { opacity: 1; pointer-events: all; }
+.overlay-btn { background: rgba(255, 255, 255, 0.9); color: #111827; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
+.overlay-btn:hover { transform: scale(1.05); }
+.overlay-btn.delete { background-color: #ef4444; color: white; }
+.watch-container { text-align: center; }
+.watch-container video { max-width: 1100px; width: 100%; margin: 1rem auto 0; display: block; border-radius: 16px; background: #000; box-shadow: var(--shadow); }
+.watch-container h2 { font-size: 2rem; color: var(--text-color); }
+.watch-container p { color: var(--text-muted); }
+.watch-page-actions { margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; }
