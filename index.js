@@ -73,17 +73,22 @@ app.post('/api/upload', upload.single('videoFile'), (req, res) => {
         .screenshots({ count: 1, timestamps: ['50%'], filename: thumbnailFileName, folder: THUMBNAILS_DIR, size: '320x180' });
 });
 
-// GET the watch page
+// In index.js, find this route and replace it completely.
+
 app.get('/watch/:id', (req, res) => {
     const videoId = parseInt(req.params.id, 10);
     const video = videos.find(v => v.id === videoId);
 
-    if (!video) return res.status(404).send('<h1>Error 404: Video Not Found</h1><a href="/">Go Back Home</a>');
+    if (!video) {
+        return res.status(404).send('<h1>Error 404: Video Not Found</h1><a href="/">Go Back Home</a>');
+    }
 
+    // Correctly get the full URL for meta tags
     const pageUrl = `${req.protocol}://${req.get('host')}/watch/${video.id}`;
     const absoluteVideoUrl = `${req.protocol}://${req.get('host')}${video.path}`;
     const absoluteThumbnailUrl = `${req.protocol}://${req.get('host')}${video.thumbnailPath}`;
 
+    // Dynamically generate the HTML with the full UI, meta tags, and theme sync
     const html = `
         <!DOCTYPE html>
         <html lang="en">
@@ -98,16 +103,20 @@ app.get('/watch/:id', (req, res) => {
             <meta property="og:image" content="${absoluteThumbnailUrl}">
             <meta property="og:video" content="${absoluteVideoUrl}">
             
+            <!-- ** THE FIX **: Use absolute path for the stylesheet -->
             <link rel="stylesheet" href="/style.css">
+            
+            <!-- THEME SYNC SCRIPT: Prevents flash of incorrect theme -->
             <script>
                 const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                 document.documentElement.className = theme;
             </script>
         </head>
-        <body class=""> <!-- Class is set by script -->
+        <body class=""> <!-- Class is now set instantly by the head script -->
             <header class="header">
                 <a href="/" class="logo">embedit</a>
-                <a href="/" style="color: var(--text-color); text-decoration: none;">← Back to All Videos</a>
+                <!-- ** THE FIX **: A clear back button -->
+                <a href="/" class="back-link">← Back to All Videos</a>
             </header>
             <main class="container">
                 <div class="watch-container">
