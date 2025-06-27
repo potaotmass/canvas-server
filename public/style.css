@@ -1,88 +1,162 @@
-/* public/style.css */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #121212;
-    color: #e0e0e0;
+/* public/style.css - The New Modern UI */
+
+:root {
+    --bg-color: #f4f7f9;
+    --surface-color: rgba(255, 255, 255, 0.6);
+    --text-color: #1a202c;
+    --text-muted: #5a6474;
+    --accent-color: #3b82f6;
+    --accent-hover: #2563eb;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    --backdrop-blur: 10px;
+}
+
+body.dark {
+    --bg-color: #1a202c;
+    --surface-color: rgba(26, 32, 44, 0.75);
+    --text-color: #e2e8f0;
+    --text-muted: #a0aec0;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    line-height: 1.6;
+}
+
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
 }
-header {
-    background-color: #1e1e1e;
-    padding: 20px;
-    text-align: center;
-    border-bottom: 1px solid #333;
-}
-header h1 {
-    color: #4CAF50;
-    margin: 0;
-}
-form {
-    background: #1e1e1e;
-    padding: 24px;
-    border-radius: 8px;
-    margin: 40px 0;
-    border: 1px solid #333;
-}
-input[type="text"], input[type="file"] {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 16px;
-    box-sizing: border-box;
-    background-color: #333;
-    border: 1px solid #555;
-    color: #e0e0e0;
-    border-radius: 4px;
-}
-button {
-    background: #4CAF50;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.2s;
-}
-button:hover { background-color: #45a049; }
-.share-btn {
-    background-color: #007bff;
-    margin-left: 10px;
-}
-.share-btn:hover { background-color: #0069d9; }
-.video-list {
-    margin-top: 20px;
-}
-.video-item {
-    background: #1e1e1e;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    border: 1px solid #333;
+
+/* Header & Nav */
+.header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 20px 40px;
+    background: var(--surface-color);
+    backdrop-filter: blur(var(--backdrop-blur));
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
-.video-item-info a {
-    color: #61dafb;
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
     text-decoration: none;
-    font-size: 20px;
-    font-weight: 500;
 }
-.video-item-info a:hover { text-decoration: underline; }
-.video-item-info p {
-    color: #aaa;
-    margin: 8px 0 0;
+
+/* Theme Toggle */
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
 }
-.watch-container { text-align: center; }
-.watch-container video {
-    max-width: 100%;
+.theme-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 24px; transition: 0.4s; }
+.slider:before { position: absolute; content: "☀️"; font-size: 12px; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; transition: 0.4s; text-align: center; line-height: 16px; }
+input:checked + .slider { background-color: var(--accent-color); }
+input:checked + .slider:before { transform: translateX(26px); content: "🌙"; }
+
+
+/* Drop Zone Uploader */
+.upload-section {
+    background: var(--surface-color);
+    padding: 3rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    text-align: center;
+    margin-bottom: 3rem;
+}
+.drop-zone {
+    border: 2px dashed var(--text-muted);
+    border-radius: 12px;
+    padding: 4rem 2rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+.drop-zone.drag-over {
+    border-color: var(--accent-color);
+    background-color: rgba(59, 130, 246, 0.1);
+}
+#file-input { display: none; }
+#upload-details { margin-top: 1rem; }
+#upload-details input[type="text"] {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.75rem;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
     border-radius: 8px;
-    background: #000;
 }
-.watch-container h2 { margin-top: 20px; font-size: 28px; }
-.watch-container p { color: #aaa; }
+.upload-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.2s;
+}
+.upload-btn:hover { background-color: var(--accent-hover); }
+
+/* Video Grid */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+.video-card {
+    background: var(--surface-color);
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease-in-out;
+}
+.video-card:hover {
+    transform: translateY(-5px);
+}
+.thumbnail {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+.video-info { padding: 1rem; }
+.video-title { font-weight: 600; font-size: 1.1rem; margin: 0; }
+.video-date { font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+/* Watch Page specific styles */
+.watch-container { text-align: center; }
+.watch-container video { max-width: 100%; width: 1000px; border-radius: 16px; margin-top: 1rem; background: #000; box-shadow: var(--shadow); }
+.watch-container h2 { font-size: 2rem; color: var(--text-color); }
+.watch-container p { color: var(--text-muted); }

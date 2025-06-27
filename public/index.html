@@ -4,29 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canvas Server - Home</title>
+    <title>Canvas - My Videos</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Canvas Video Platform</h1>
+    <header class="header">
+        <a href="/" class="logo">Canvas</a>
+        <label class="theme-switch">
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider"></span>
+        </label>
     </header>
 
-    <div class="container">
-        <form id="uploadForm">
-            <h2>Upload a New Video</h2>
-            <input type="text" id="titleInput" name="title" placeholder="Video Title" required>
-            <input type="file" id="fileInput" name="videoFile" accept="video/*" required>
-            <button type="submit">Upload & Go to Video</button>
-            <p id="uploadStatus"></p>
-        </form>
+    <main class="container">
+        <section class="upload-section">
+            <div id="drop-zone">
+                <h2>Drag & Drop a Video to Upload</h2>
+                <p>or click here to select a file</p>
+                <input type="file" id="file-input" accept="video/*">
+            </div>
 
-        <h2>Recent Videos</h2>
-        <div id="videoList">
-            <!-- Video list will be loaded here -->
-        </div>
-    </div>
+            <div id="upload-details" style="display: none;">
+                <p><strong>File selected:</strong> <span id="file-name"></span></p>
+                <input type="text" id="title-input" placeholder="Enter video title" required>
+                <button id="upload-btn" class="upload-btn">Upload</button>
+            </div>
+            
+            <p id="upload-status"></p>
+        </section>
 
+        <section>
+            <h2>My Videos</h2>
+            <div id="video-grid" class="video-grid">
+                <!-- Video cards will be dynamically inserted here -->
+            </div>
+        </section>
+    </main>
+    
     <script src="client.js"></script>
 </body>
 </html>
