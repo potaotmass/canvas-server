@@ -44,4 +44,10 @@ input:checked + .slider:before { transform: translateX(26px); content: "🌙"; }
     transition: all 0.2s;
 }
 .drop-zone.drag-over { border-color: var(--accent-color); background-color: rgba(34, 197, 94, 0.1); transform: scale(1.02); }
+.watch-page-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
 /* ... Rest of the CSS styles (inputs, buttons, video grid, etc.) can stay exactly the same as the last version ... */
