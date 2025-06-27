@@ -1,3 +1,5 @@
+// public/client.js - FINAL VERSION WITH DOUBLE-CLICK FEATURE
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Theme Management ---
     const themeToggle = document.getElementById('theme-toggle');
@@ -21,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoGrid = document.getElementById('video-grid');
     let selectedFile = null;
 
-    // --- Drag & Drop ---
+    // --- Drag & Drop Logic ---
     dropZone.addEventListener('click', () => fileInput.click());
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
     ['dragleave', 'dragend', 'drop'].forEach(type => dropZone.addEventListener(type, () => dropZone.classList.remove('drag-over')));
@@ -55,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { uploadStatus.textContent = ''; }, 3000);
     }
 
-    // --- Upload ---
+    // --- Upload Form Submission ---
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!selectedFile || !titleInput.value.trim()) return alert('Please select a file and provide a title.');
@@ -90,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 videoCard.className = 'video-card';
                 const watchLink = `/watch/${video.id}`;
                 videoCard.innerHTML = `
-                    <a href="${watchLink}" target="_blank" title="${video.title}"><div class="thumbnail"><img src="${video.thumbnailPath}" alt="Thumbnail"></div></a>
+                    <a href="${watchLink}" target="_blank" title="Watch ${video.title}"><div class="thumbnail"><img src="${video.thumbnailPath}" alt="Thumbnail"></div></a>
                     <div class="video-info">
                         <a href="${watchLink}" target="_blank" style="text-decoration:none; color:inherit;"><h3 class="video-title">${video.title}</h3></a>
                         <p class="video-date">Uploaded on ${new Date(video.uploadDate).toLocaleDateString()}</p>
@@ -99,6 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="overlay-btn share-btn" data-link="${watchLink}">Share</button>
                         <button class="overlay-btn delete-btn" data-id="${video.id}">Delete</button>
                     </div>`;
+
+                // *** THIS IS THE NEW FEATURE ***
+                // Add a double-click listener to the whole card for a quick open action.
+                videoCard.addEventListener('dblclick', () => {
+                    window.open(watchLink, '_blank');
+                });
+                // **********************************
+
                 videoGrid.appendChild(videoCard);
             });
         } catch (error) {
@@ -106,8 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
+    // Event listener for dynamic buttons (Share and Delete)
     videoGrid.addEventListener('click', async (e) => {
         const target = e.target;
+        // This stops the double-click from firing when a button is clicked once.
+        if (target.classList.contains('overlay-btn')) {
+             e.stopPropagation();
+        }
+
         if (target.classList.contains('share-btn')) {
             const link = window.location.origin + target.dataset.link;
             navigator.clipboard.writeText(link).then(() => {
@@ -126,5 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Initial Load ---
     loadVideos();
 });
