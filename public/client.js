@@ -1,17 +1,8 @@
-// public/client.js - FINAL VERSION WITH DEVICE ID
-
+// public/client.js - FINAL VERSION WITH LIVE PROGRESS BAR
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Device ID Management ---
-    const getDeviceID = () => {
-        let deviceID = localStorage.getItem('Embedit-device-id');
-        if (!deviceID) {
-            deviceID = crypto.randomUUID(); // Generate a new, unique ID
-            localStorage.setItem('Embedit-device-id', deviceID);
-        }
-        return deviceID;
-    };
-    const deviceID = getDeviceID();
+    const deviceID = (() => { let id = localStorage.getItem('embedit-device-id'); if (!id) { id = crypto.randomUUID(); localStorage.setItem('embedit-device-id', id); } return id; })();
     
     // --- Theme Management ---
     const themeToggle = document.getElementById('theme-toggle');
@@ -33,53 +24,87 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadBtn = document.getElementById('upload-btn');
     const uploadStatus = document.getElementById('upload-status');
     const videoGrid = document.getElementById('video-grid');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
     let selectedFile = null;
     
-    // --- Drag & Drop / UI Flow ---
-    const handleFileSelect = (file) => { selectedFile = file; fileNameDisplay.textContent = `File: ${file.name}`; uploadDetails.style.display = 'block'; dropZone.style.display = 'none'; };
-    const uploadFormReset = () => { selectedFile = null; uploadDetails.style.display = 'none'; dropZone.style.display = 'block'; titleInput.value = ''; fileInput.value = ''; uploadBtn.disabled = false; setTimeout(() => { uploadStatus.textContent = ''; }, 3000); };
+    // --- UI Flow Functions ---
+    const handleFileSelect = (file) => { selectedFile = file; fileNameDisplay.textContent = `File: ${file.name}`; uploadDetails.style.display = 'block'; dropZone.style.display = 'none'; uploadStatus.textContent = ''; progressContainer.style.display = 'none'; };
+    const uploadFormReset = () => { selectedFile = null; uploadDetails.style.display = 'none'; dropZone.style.display = 'block'; titleInput.value = ''; fileInput.value = ''; uploadBtn.disabled = false; setTimeout(() => { uploadStatus.textContent = ''; progressContainer.style.display = 'none';}, 3000); };
     dropZone.addEventListener('click', () => fileInput.click());
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
     ['dragleave', 'dragend', 'drop'].forEach(type => dropZone.addEventListener(type, () => dropZone.classList.remove('drag-over')));
-    dropZone.addEventListener('drop', (e) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file?.type.startsWith('video/')) { fileInput.files = e.dataTransfer.files; handleFileSelect(file); }});
+    dropZone.addEventListener('drop', (e) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file?.type.startsWith('video/')) { fileInput.files = e.dataTransfer.files; handleFileSelect(file); } });
     fileInput.addEventListener('change', (e) => e.target.files.length && handleFileSelect(e.target.files[0]));
-    
-    // --- App Logic (API Calls) ---
+
+    // --- Upload with XMLHttpRequest for Progress ---
+    uploadForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!selectedFile || !titleInput.value.trim()) return alert('Please select a file and provide a title.');
+
+        const formData = new FormData();
+        formData.append('videoFile', selectedFile);
+        formData.append('title', titleInput.value.trim());
+        formData.append('deviceID', deviceID);
+        
+        uploadStatus.textContent = '';
+        uploadBtn.disabled = true;
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        progressBar.style.backgroundColor = 'var(--accent-color)';
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload', true);
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = Math.round((event.loaded / event.total) * 100);
+                progressBar.style.width = percentComplete + '%';
+                progressBar.textContent = percentComplete + '%';
+            }
+        };
+        xhr.onload = () => {
+            progressBar.textContent = 'Processing...';
+            progressBar.style.backgroundColor = '#f59e0b'; // Yellow for processing
+
+            if (xhr.status === 201) {
+                uploadStatus.textContent = 'Upload complete! Thumbnail is processing.';
+                const result = JSON.parse(xhr.responseText);
+                window.open(`/watch/${result.video.id}`, '_blank');
+                uploadFormReset();
+                loadVideos();
+            } else {
+                try {
+                    const error = JSON.parse(xhr.responseText);
+                    uploadStatus.textContent = `Error: ${error.message}`;
+                } catch {
+                    uploadStatus.textContent = `Error: Server responded with status ${xhr.status}.`;
+                }
+            }
+            uploadBtn.disabled = false;
+        };
+        xhr.onerror = () => { uploadStatus.textContent = 'Network error during upload.'; uploadBtn.disabled = false; };
+        xhr.send(formData);
+    });
+
+    // --- Video Grid & Actions ---
     const loadVideos = async () => {
         try {
             const response = await fetch(`/api/videos?deviceID=${deviceID}`);
             const videos = await response.json();
             videoGrid.innerHTML = '';
-            if (videos.length === 0) return videoGrid.innerHTML = '<p>Your uploaded videos for this device will appear here.</p>';
+            if (videos.length === 0) return videoGrid.innerHTML = '<p>Your videos for this device will appear here.</p>';
+            
             videos.forEach(video => {
                 const videoCard = document.createElement('div');
                 videoCard.className = 'video-card';
                 const watchLink = `/watch/${video.id}`;
-                videoCard.innerHTML = `<div class="thumbnail"><img src="${video.thumbnailPath}" alt="Thumbnail"></div><div class="video-info"><h3 class="video-title">${video.title}</h3><p class="video-date">Uploaded: ${new Date(video.uploadDate).toLocaleDateString()}</p></div><div class="card-overlay"><button class="overlay-btn share-btn" data-link="${watchLink}">Share</button><button class="overlay-btn delete-btn" data-id="${video.id}">Delete</button></div>`;
+                videoCard.innerHTML = `${video.processing ? '<div class="thumbnail-processing">Processing...</div>' : ''}<a href="${watchLink}" target="_blank"><div class="thumbnail"><img src="${video.thumbnailPath}" alt="Thumbnail"></div></a><div class="video-info"><h3 class="video-title">${video.title}</h3><p class="video-date">Uploaded: ${new Date(video.uploadDate).toLocaleDateString()}</p></div><div class="card-overlay"><button class="overlay-btn share-btn" data-link="${watchLink}">Share</button><button class="overlay-btn delete-btn" data-id="${video.id}">Delete</button></div>`;
                 videoCard.addEventListener('click', (e) => { if (e.target.closest('.overlay-btn')) return; window.open(watchLink, '_blank'); });
                 videoGrid.appendChild(videoCard);
-            });
+});
         } catch (error) { videoGrid.innerHTML = '<p>Could not load videos.</p>'; }
     };
-
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (!selectedFile || !titleInput.value.trim()) return alert('Please select a file and provide a title.');
-        const formData = new FormData();
-        formData.append('videoFile', selectedFile);
-        formData.append('title', titleInput.value.trim());
-        formData.append('deviceID', deviceID);
-        uploadStatus.textContent = 'Uploading & Processing...';
-        uploadBtn.disabled = true;
-        try {
-            const response = await fetch('/api/upload', { method: 'POST', body: formData });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
-            window.open(`/watch/${result.video.id}`, '_blank');
-            uploadFormReset();
-            loadVideos();
-        } catch (error) { uploadStatus.textContent = `Error: ${error.message}`; uploadBtn.disabled = false; }
-    });
     
     videoGrid.addEventListener('click', async (e) => {
         const target = e.target;
@@ -99,4 +124,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadVideos();
+    setInterval(loadVideos, 10000); // Poll for new thumbnails every 10 seconds
 });

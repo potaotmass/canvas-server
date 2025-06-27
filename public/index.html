@@ -2,42 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embedit - Your Private Video Space</title>
+    <title>Embedit - Host & Share Videos</title>
     <link rel="stylesheet" href="/style.css">
-    <script>
-        const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.className = theme;
-    </script>
+    <script>const theme=localStorage.getItem("theme")||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.className=theme;</script>
 </head>
 <body class="">
-    <!-- The Login Screen is gone, we go straight to the app -->
     <header class="header">
         <a href="/" class="logo">Embedit</a>
-        <label class="theme-switch">
-            <input type="checkbox" id="theme-toggle">
-            <span class="slider"></span>
-        </label>
+        <label class="theme-switch"><input type="checkbox" id="theme-toggle"><span class="slider"></span></label>
     </header>
     <main class="container">
         <section class="upload-section">
             <form id="upload-form">
-                <div id="drop-zone">
-                    <h2>Drag & Drop Your Video Here</h2>
-                    <p>or click to select a file</p>
-                </div>
+                <div id="drop-zone"><h2>Drag & Drop Your Video Here</h2><p>or click to select a file</p></div>
                 <input type="file" id="file-input" accept="video/*">
                 <div id="upload-details" style="display: none;">
                     <p id="file-name-display"></p>
                     <input type="text" id="title-input" placeholder="Give your video a title..." required>
+                    <div id="progress-container"><div id="progress-bar"></div></div>
                     <button type="submit" id="upload-btn" class="upload-btn">Upload Video</button>
                 </div>
                 <p id="upload-status"></p>
             </form>
         </section>
-        <section>
-            <h2>My Videos</h2>
-            <div id="video-grid" class="video-grid"></div>
-        </section>
+        <section><h2>My Videos</h2><div id="video-grid" class="video-grid"></div></section>
     </main>
     <script src="/client.js"></script>
 </body>
